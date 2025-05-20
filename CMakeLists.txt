@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(include/socketlib)
 
 # Main application
-add_executable(App src/main.cpp)
+add_executable(server src/server.cpp)
 
 # Link with the socketlib
-target_link_libraries(App PRIVATE socketlib)
+target_link_libraries(server PRIVATE socketlib)
