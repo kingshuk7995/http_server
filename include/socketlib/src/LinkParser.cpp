@@ -15,20 +15,25 @@ std::vector<std::string> LinkParser::tokenize(const std::string& path) const {
     return parts;
 }
 
-void LinkParser::add_route(const std::string& path, const std::string& method, Handler h) {
+void LinkParser::add_route(const std::string& path,
+                           const std::string& method,
+                           Handler h) {
     auto tokens = tokenize(path);
     auto curr = root;
     for (auto& tok : tokens) {
-        bool dyn = !tok.empty() && tok[0] == ':';
-        std::string key = dyn ? ":" : tok;
+        bool isDyn = !tok.empty() && tok[0] == ':';
+        std::string key = isDyn ? ":" : tok;
         if (!curr->children.count(key))
-            curr->children[key] = std::make_shared<Node>(dyn ? LinkType::DYNAMIC : LinkType::STATIC);
+            curr->children[key] = std::make_shared<Node>(
+                isDyn ? LinkType::DYNAMIC : LinkType::STATIC
+            );
         curr = curr->children[key];
     }
     curr->methods[method] = h;
 }
 
-void LinkParser::concat_links(const std::string& base, std::shared_ptr<Node> subroot) {
+void LinkParser::concat_links(const std::string& base,
+                              std::shared_ptr<Node> subroot) {
     auto tokens = tokenize(base);
     auto curr = root;
     for (auto& tok : tokens) {
@@ -42,7 +47,10 @@ void LinkParser::concat_links(const std::string& base, std::shared_ptr<Node> sub
     }
 }
 
-void LinkParser::call(const std::string& path, const std::string& method) const {
+void LinkParser::call(const std::string& path,
+                      const std::string& method,
+                      const Http& req,
+                      Http& res) const {
     auto tokens = tokenize(path);
     auto curr = root;
     for (auto& tok : tokens) {
@@ -51,14 +59,17 @@ void LinkParser::call(const std::string& path, const std::string& method) const 
         } else if (curr->children.count(":")) {
             curr = curr->children.at(":");
         } else {
-            std::cerr << "404 Not Found: " << path << "\n";
+            res.set_status("404", "Not Found");
+            res.set_body("404 Not Found");
             return;
         }
     }
+
     if (curr->methods.count(method)) {
-        curr->methods.at(method)();
+        curr->methods.at(method)(req, res);
     } else {
-        std::cerr << "405 Method Not Allowed: " << method << " at " << path << "\n";
+        res.set_status("405", "Method Not Allowed");
+        res.set_body("405 Method Not Allowed");
     }
 }
 

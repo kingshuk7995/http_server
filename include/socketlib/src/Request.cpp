@@ -1,17 +1,13 @@
-#include "Request.h"
-#include "Socket.h"
-#include <sstream>
+#include "Router.h"
 
-Http Request::fetch(const std::string& host, int port, const std::string& path) {
-    ClientSocket cs;
-    std::ostringstream req;
-    req << "GET " << path << " HTTP/1.1\r\n";
-    req << "Host: " << host << "\r\n\r\n";
-    cs.request(host.c_str(), port, req.str());
+void Router::route(const std::string& path, const std::string& method, std::function<void(const Http& req, Http& res)> handler) {
+    parser.add_route(path, method, handler);
+}
 
-    char buf[4096];
-    int n = recv(cs.get_fd(), buf, sizeof(buf)-1, 0);
-    if (n <= 0) return Http("");
-    buf[n] = '\0';
-    return Http(buf);
+void Router::route(const std::string& path, Router& other) {
+    parser.concat_links(path, other.parser.get_root());
+}
+
+void Router::call(const std::string& path, const std::string& method, const Http& req, Http& res) {
+    parser.call(path, method, req, res);
 }

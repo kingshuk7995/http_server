@@ -7,10 +7,11 @@
 #include <functional>
 #include <vector>
 #include <sstream>
+#include "Http.h"
 
 class LinkParser {
 public:
-    using Handler = std::function<void()>;
+    using Handler = std::function<void(const Http& req, Http& res)>;
 
     enum class LinkType { STATIC, DYNAMIC };
 
@@ -18,13 +19,20 @@ public:
         std::map<std::string, std::shared_ptr<Node>> children;
         std::map<std::string, Handler> methods;
         LinkType type = LinkType::STATIC;
-        Node(LinkType t = LinkType::STATIC) : type(t){}
+
+        Node(LinkType t = LinkType::STATIC): type(t) {}
     };
 
     LinkParser();
-    void add_route(const std::string& path, const std::string& method, Handler h);
-    void concat_links(const std::string& base, std::shared_ptr<Node> subroot);
-    void call(const std::string& path, const std::string& method) const;
+    void add_route(const std::string& path,
+                   const std::string& method,
+                   Handler h);
+    void concat_links(const std::string& base,
+                      std::shared_ptr<Node> subroot);
+    void call(const std::string& path,
+              const std::string& method,
+              const Http& req,
+              Http& res) const;
     std::shared_ptr<Node> get_root() const;
 
 private:
