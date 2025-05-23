@@ -8,7 +8,7 @@
 
 class Router {
 protected:
-    LinkParser parser;
+    LinkParser m_parser;
 
 public:
     // Register a handler for a specific HTTP method at `path`

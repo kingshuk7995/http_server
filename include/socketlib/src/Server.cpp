@@ -3,17 +3,17 @@
 #include <iostream>
 
 Server::Server(int port) {
-    if (!sock.create() || !sock.bind_socket(port)) {
+    if (!m_sock.create() || !m_sock.bind_socket(port)) {
         std::cerr << "Failed to bind server socket on port " << port << "\n";
         exit(1);
     }
-    running = true;
+    m_running = true;
 }
 
 void Server::start() {
     std::cout << "Server listening...\n";
-    while (running && sock.listen_socket()) {
-        int client = sock.accept_connection();
+    while (m_running && m_sock.listen_socket()) {
+        int client = m_sock.accept_connection();
         if (client < 0) continue;
         std::thread([this, client]() {
             char buf[4096];
@@ -27,7 +27,7 @@ void Server::start() {
                 // Dispatch through our router
                 this->call(req.get_url(), req.get_method(), req, res);
 
-                sock.send_message(client, res.c_stringify());
+                m_sock.send_message(client, res.c_stringify());
             }
 #ifdef _WIN32
             closesocket(client);
@@ -39,6 +39,6 @@ void Server::start() {
 }
 
 void Server::stop() {
-    running = false;
-    sock.close_socket();
+    m_running = false;
+    m_sock.close_socket();
 }

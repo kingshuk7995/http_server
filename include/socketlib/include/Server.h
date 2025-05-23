@@ -7,8 +7,8 @@
 #include <atomic>
 
 class Server : public Router {
-    ServerSocket sock;
-    std::atomic<bool> running{false};
+    ServerSocket m_sock;
+    std::atomic<bool> m_running{false};
 
 public:
     explicit Server(int port);

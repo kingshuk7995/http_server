@@ -2,7 +2,7 @@
 #include <iostream>
 
 LinkParser::LinkParser() {
-    root = std::make_shared<Node>();
+    m_root = std::make_shared<Node>();
 }
 
 std::vector<std::string> LinkParser::tokenize(const std::string& path) const {
@@ -15,11 +15,9 @@ std::vector<std::string> LinkParser::tokenize(const std::string& path) const {
     return parts;
 }
 
-void LinkParser::add_route(const std::string& path,
-                           const std::string& method,
-                           Handler h) {
+void LinkParser::add_route(const std::string& path, const std::string& method, Handler h) {
     auto tokens = tokenize(path);
-    auto curr = root;
+    auto curr = m_root;
     for (auto& tok : tokens) {
         bool isDyn = !tok.empty() && tok[0] == ':';
         std::string key = isDyn ? ":" : tok;
@@ -32,27 +30,23 @@ void LinkParser::add_route(const std::string& path,
     curr->methods[method] = h;
 }
 
-void LinkParser::concat_links(const std::string& base,
-                              std::shared_ptr<Node> subroot) {
+void LinkParser::concat_links(const std::string& base, std::shared_ptr<Node> subm_root) {
     auto tokens = tokenize(base);
-    auto curr = root;
+    auto curr = m_root;
     for (auto& tok : tokens) {
         std::string key = (!tok.empty() && tok[0] == ':') ? ":" : tok;
         if (!curr->children.count(key))
             curr->children[key] = std::make_shared<Node>();
         curr = curr->children[key];
     }
-    for (auto& [k, child] : subroot->children) {
+    for (auto& [k, child] : subm_root->children) {
         curr->children[k] = child;
     }
 }
 
-void LinkParser::call(const std::string& path,
-                      const std::string& method,
-                      const Http& req,
-                      Http& res) const {
+void LinkParser::call(const std::string& path, const std::string& method, const Http& req, Http& res) const {
     auto tokens = tokenize(path);
-    auto curr = root;
+    auto curr = m_root;
     for (auto& tok : tokens) {
         if (curr->children.count(tok)) {
             curr = curr->children.at(tok);
@@ -71,8 +65,4 @@ void LinkParser::call(const std::string& path,
         res.set_status("405", "Method Not Allowed");
         res.set_body("405 Method Not Allowed");
     }
-}
-
-std::shared_ptr<LinkParser::Node> LinkParser::get_root() const {
-    return root;
 }
