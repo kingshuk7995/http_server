@@ -8,3 +8,4 @@ A basic HTTP server in cpp from scratch
 ### Improvements
 - asynchronous IO with epoll and std::coroutines
 - multiple file support
+- middlewares
