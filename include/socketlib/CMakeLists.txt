@@ -1,9 +1,12 @@
 project(socketlib LANGUAGES CXX)
 
 add_library(socketlib STATIC
-    include/Socket.h
     src/Socket.cpp
     src/Http.cpp
+    src/LinkParser.cpp
+    src/Server.cpp
+    src/Request.cpp
+    src/Router.cpp
 )
 
 target_include_directories(socketlib PUBLIC
